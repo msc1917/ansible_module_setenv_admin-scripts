@@ -1,0 +1,29 @@
+hardware: []
+
+software:
+  - git
+
+services:
+  - ssh
+  - avahi
+
+enviroment:
+  gui_system: false
+
+development:
+  get_git_repositories: true
+  repository_baikonur: true
+  repository_itsv: true
+
+hostfile: 
+  create: true
+  full: false
+
+kernel:
+  kernel_modules: true
+
+ml_engines: []
+
+do_mount_filesystems: true
+do_software_upgrade: true
+do_ansible: false

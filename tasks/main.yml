@@ -1,0 +1,24 @@
+---
+- name: Generate config-file
+  template:
+    src: "script_config.cfg.j2"
+    dest: "/home/{{ item.name }}/etc/script_config.cfg"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0600'
+  become: yes
+  with_items:
+    - "{{ admin_users }}"
+
+- name: Copy picture_admin.sh
+  copy:
+    src: "picture_admin.sh"
+    dest: "/home/{{ item.name }}/bin/picture_admin.sh"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0744'
+  become: yes
+  with_items:
+    - "{{ admin_users }}"
+  when:
+    - "'image_admin' in item.script_pkg"
