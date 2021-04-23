@@ -10,6 +10,28 @@
   with_items:
     - "{{ admin_users }}"
 
+- name: Create lib/shell-functions-directory
+  file:
+    path: "/home/{{ item.name }}/lib/shell-functions"
+    state: directory
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0755
+  become: yes
+  with_items:
+    - "{{ admin_users }}"
+
+- name: Copy storage_operations.functions
+  copy:
+    src: "storage_operations.functions"
+    dest: "/home/{{ item.name }}/lib/shell-functions/storage_operations.functions"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0644'
+  become: yes
+  with_items:
+    - "{{ admin_users }}"
+
 - name: Copy picture_admin.sh
   copy:
     src: "picture_admin.sh"

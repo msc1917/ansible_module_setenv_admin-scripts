@@ -5,66 +5,21 @@
 # Tool für den Foto-Filespace am Storage
 #
 # Version 1.0    2021.04.20    Martin Schatz     First Version
+# Version 1.1    2021.04.21    Martin Schatz     Removed Storage-Operations and moved them into functions-file
+#
+#
+#
+# Todos:
+#   - Hilfetext einbauen
 #
 ###
 
 # Lade Config-Parameter
 . ~/etc/script_config.cfg
+. ~/lib/shell-functions/storage_operations.functions
+
 imagepath="$(echo "${imagepath}" | sed "s/\/$//g")"
 imagefspath="$(echo "${imagefspath}" | sed "s/\/$//g")"
-
-function check_filesystems {
-    echo "Pruefe Verzeichnisse:"
-    # Mounte Filesystem
-    if cat /proc/mounts | cut -f 2 -d " " | grep -qs "${imagefspath}"; then
-      echo "  - Foto-Filesystem \"${imagefspath}\" ist gemounted."
-    else
-      echo "  - Foto-Filesystem \"${imagefspath}\" fehlt und wird gemounted."
-      sudo mount ${imagefspath}
-      if [ ${?} -ne 0 ]
-      then
-        echo "  - Fehler beim mounten, beende..."
-        exit 10
-      else
-        echo "  - Filesystem wurde gemounted."
-      fi
-    fi
-    echo ""
-}
-
-function genDir {
-    if [ -d "${1}" ]
-    then
-        false && echo "  - Verzeichnis \"${1}\" bereits vorhanden."
-    else 
-        echo "  - Erstelle Verzeichnis \"${1}\"."
-        sudo mkdir "${1}"
-    fi
-}
-
-function delDir {
-    if [ -d "${1}" ]
-    then
-        echo "  - Verzeichnis \"${1}\" wird entfernt."
-        sudo rmdir "${1}"
-    fi
-}
-
-function moveFile {
-    if [ -f "${1}" ]
-    then
-        targetdir="$(dirname "${2}")"
-        if [ -d "${targetdir}" ]
-        then
-            false && echo "  - Verzeichnis \"${targetdir}\" bereits vorhanden."
-        else 
-            echo "  - Erstelle Verzeichnis \"${targetdir}\"."
-            sudo mkdir -p "${targetdir}"
-        fi
-    echo "  - Verschiebe File \"$(basename "${1}")\" nach \"${targetdir}/\"."
-    sudo mv "${1}" "${2}"
-    fi
-}
 
 function findEmptyDir {
     local base_path=${1}
@@ -78,7 +33,6 @@ function findEmptyDir {
         done
     fi
 }
-
 
 function build_subdirectories {
     allMonths="01 02 03 04 05 06 07 08 09 10 11 12"
@@ -122,12 +76,17 @@ do
             ;;
         "Fremde Fotos")
             genDir "${imagepath}/${subPath}/${thisYear}"
+            build_subdirectories "${imagepath}/${subPath}" "${thisYear}" "Android"
             ;;
         "Nachbearbeitete Bilder" )
             genDir "${imagepath}/${subPath}/${thisYear}"
+            build_subdirectories "${imagepath}/${subPath}" "${thisYear}" "Android"
             ;;
         "Neu")
-            # genDir "${imagepath}/${subPath}/${thisYear}"
+            for subDir in "von SD-Karte" "Lightroom Mobile" "Thetering"
+            do
+                genDir "${imagepath}/${subPath}/${subDir}"
+            done
             ;;
         "Videos")
             genDir "${imagepath}/${subPath}/${thisYear}"
@@ -207,7 +166,7 @@ find "${imagepath}" -maxdepth 1 -type d | sed -E "s#^${imagepath}/?##" | while r
     done
 }
 
-check_filesystems
+check_filesystems "${imagefspath}"
 
 if [ "${1}" = "" ]
 then

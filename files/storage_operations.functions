@@ -1,0 +1,53 @@
+function check_filesystems {
+    echo "Pruefe Filesysem-mounts:"
+    # Mounte Filesystem
+    for filesystem in ${*}
+    do
+        if cat /proc/mounts | cut -f 2 -d " " | grep -qs "${filesystem}"; then
+          echo "  - Filesystem \"${filesystem}\" ist gemounted."
+        else
+          echo "  - Filesystem \"${filesystem}\" fehlt und wird gemounted."
+          sudo mount ${filesystem}
+          if [ ${?} -ne 0 ]
+          then
+            echo "  - Fehler beim mounten, beende..."
+            exit 10
+          fi
+        fi
+    done
+    echo ""
+}
+
+function genDir {
+    if [ -d "${1}" ]
+    then
+        false && echo "  - Verzeichnis \"${1}\" bereits vorhanden."
+    else 
+        echo "  - Erstelle Verzeichnis \"${1}\"."
+        sudo mkdir "${1}"
+    fi
+}
+
+function delDir {
+    if [ -d "${1}" ]
+    then
+        echo "  - Verzeichnis \"${1}\" wird entfernt."
+        sudo rmdir "${1}"
+    fi
+}
+
+function moveFile {
+    if [ -f "${1}" ]
+    then
+        targetdir="$(dirname "${2}")"
+        if [ -d "${targetdir}" ]
+        then
+            false && echo "  - Verzeichnis \"${targetdir}\" bereits vorhanden."
+        else 
+            echo "  - Erstelle Verzeichnis \"${targetdir}\"."
+            sudo mkdir -p "${targetdir}"
+        fi
+    echo "  - Verschiebe File \"$(basename "${1}")\" nach \"${targetdir}/\"."
+    sudo mv "${1}" "${2}"
+    fi
+}
