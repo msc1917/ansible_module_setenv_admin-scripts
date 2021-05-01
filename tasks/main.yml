@@ -44,3 +44,20 @@
     - "{{ admin_users }}"
   when:
     - "'image_admin' in item.script_pkg"
+    - "scripts is defined"
+    - "'image_admin' in scripts"
+
+- name: Copy convert_webp.sh
+  copy:
+    src: "convert_webp.sh"
+    dest: "/home/{{ item.name }}/bin/convert_webp.sh"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0744'
+  become: yes
+  with_items:
+    - "{{ admin_users }}"
+  when:
+    - "'image_admin' in item.script_pkg"
+    - "scripts is defined"
+    - "'image_admin' in scripts"
